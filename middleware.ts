@@ -31,17 +31,19 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const isLoginPage = request.nextUrl.pathname.startsWith("/login");
+  const isPaginaPublica =
+    request.nextUrl.pathname.startsWith("/login") ||
+    request.nextUrl.pathname.startsWith("/cadastro");
 
   // Não autenticado tentando acessar área interna -> manda para /login
-  if (!user && !isLoginPage) {
+  if (!user && !isPaginaPublica) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
   }
 
-  // Autenticado tentando acessar /login -> manda para a área interna
-  if (user && isLoginPage) {
+  // Autenticado tentando acessar /login ou /cadastro -> manda para a área interna
+  if (user && isPaginaPublica) {
     const url = request.nextUrl.clone();
     url.pathname = "/solicitacoes";
     return NextResponse.redirect(url);

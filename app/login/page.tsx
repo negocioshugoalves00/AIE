@@ -1,13 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { paraEmailSintetico } from "@/lib/telefone";
 
 export default function LoginPage() {
   const router = useRouter();
   const supabase = createClient();
-  const [email, setEmail] = useState("");
+  const [telefone, setTelefone] = useState("");
   const [senha, setSenha] = useState("");
   const [erro, setErro] = useState<string | null>(null);
   const [carregando, setCarregando] = useState(false);
@@ -18,14 +20,14 @@ export default function LoginPage() {
     setCarregando(true);
 
     const { error } = await supabase.auth.signInWithPassword({
-      email,
+      email: paraEmailSintetico(telefone),
       password: senha,
     });
 
     setCarregando(false);
 
     if (error) {
-      setErro("E-mail ou senha inválidos.");
+      setErro("Celular ou senha inválidos.");
       return;
     }
 
@@ -38,19 +40,19 @@ export default function LoginPage() {
       <div className="w-full max-w-sm bg-white rounded-xl shadow-sm border border-slate-200 p-8">
         <h1 className="text-xl font-semibold mb-1">Gestão de Solicitações</h1>
         <p className="text-sm text-slate-500 mb-6">
-          Entre com seu e-mail e senha cadastrados.
+          Entre com seu celular e senha cadastrados.
         </p>
 
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1">E-mail</label>
+            <label className="block text-sm font-medium mb-1">Celular</label>
             <input
-              type="email"
+              type="tel"
               required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={telefone}
+              onChange={(e) => setTelefone(e.target.value)}
               className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-              placeholder="voce@clinica.com"
+              placeholder="(44) 99999-9999"
             />
           </div>
 
@@ -76,6 +78,13 @@ export default function LoginPage() {
             {carregando ? "Entrando..." : "Entrar"}
           </button>
         </form>
+
+        <p className="text-sm text-slate-500 mt-4 text-center">
+          Ainda não tem acesso?{" "}
+          <Link href="/cadastro" className="text-primary hover:underline">
+            Criar conta
+          </Link>
+        </p>
       </div>
     </main>
   );

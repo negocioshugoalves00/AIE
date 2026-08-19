@@ -31,9 +31,17 @@ export default async function AppLayout({
                 Solicitações
               </Link>
               {isGestor && (
-                <Link href="/relatorios" className="text-slate-600 hover:text-slate-900">
-                  Relatórios
-                </Link>
+                <>
+                  <Link href="/relatorios" className="text-slate-600 hover:text-slate-900">
+                    Relatórios
+                  </Link>
+                  <Link href="/admin/cadastros" className="text-slate-600 hover:text-slate-900">
+                    Cadastros
+                  </Link>
+                  <Link href="/admin/usuarios" className="text-slate-600 hover:text-slate-900">
+                    Usuários
+                  </Link>
+                </>
               )}
             </nav>
           </div>

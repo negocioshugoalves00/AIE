@@ -14,6 +14,7 @@ type Solicitacao = {
   status: "pendente" | "realizada";
   data_solicitacao: string;
   exame_texto_livre: string | null;
+  recepcionista_nome: string | null;
   exames: { nome: string } | null;
   unidades: { nome: string } | null;
   convenios: { nome: string } | null;
@@ -29,12 +30,10 @@ const ACOES: { valor: Solicitacao["acao"]; label: string }[] = [
 export default function SolicitacoesClient({
   unidadesIniciais,
   conveniosIniciais,
-  examesIniciais,
   solicitacoesIniciais,
 }: {
   unidadesIniciais: Opcao[];
   conveniosIniciais: Opcao[];
-  examesIniciais: Opcao[];
   solicitacoesIniciais: Solicitacao[];
 }) {
   const router = useRouter();
@@ -50,8 +49,8 @@ export default function SolicitacoesClient({
     nome_paciente: "",
     convenio_id: "",
     acao: "alteracao" as Solicitacao["acao"],
-    exame_id: "",
     exame_texto_livre: "",
+    recepcionista_nome: "",
     unidade_id: "",
     observacao: "",
   });
@@ -64,12 +63,14 @@ export default function SolicitacoesClient({
     e.preventDefault();
     setErro(null);
 
-    if (!form.numero_requisicao || !form.nome_paciente || !form.unidade_id) {
-      setErro("Preencha número da requisição, paciente e unidade.");
-      return;
-    }
-    if (!form.exame_id && !form.exame_texto_livre) {
-      setErro("Selecione um exame do catálogo ou informe o nome manualmente.");
+    if (
+      !form.numero_requisicao ||
+      !form.nome_paciente ||
+      !form.unidade_id ||
+      !form.exame_texto_livre ||
+      !form.recepcionista_nome
+    ) {
+      setErro("Preencha número da requisição, paciente, exame, recepcionista e unidade.");
       return;
     }
 
@@ -90,8 +91,8 @@ export default function SolicitacoesClient({
       nome_paciente: form.nome_paciente,
       convenio_id: form.convenio_id || null,
       acao: form.acao,
-      exame_id: form.exame_id || null,
-      exame_texto_livre: form.exame_id ? null : form.exame_texto_livre,
+      exame_texto_livre: form.exame_texto_livre,
+      recepcionista_nome: form.recepcionista_nome,
       unidade_id: form.unidade_id,
       observacao: form.observacao || null,
       solicitante_id: user.id,
@@ -109,8 +110,8 @@ export default function SolicitacoesClient({
       nome_paciente: "",
       convenio_id: "",
       acao: "alteracao",
-      exame_id: "",
       exame_texto_livre: "",
+      recepcionista_nome: "",
       unidade_id: "",
       observacao: "",
     });
@@ -192,32 +193,24 @@ export default function SolicitacoesClient({
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Exame (catálogo)</label>
-            <select
-              value={form.exame_id}
-              onChange={(e) => atualizarCampo("exame_id", e.target.value)}
+            <label className="block text-sm font-medium mb-1">Exame</label>
+            <input
+              value={form.exame_texto_livre}
+              onChange={(e) => atualizarCampo("exame_texto_livre", e.target.value)}
               className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
-            >
-              <option value="">-- não está na lista --</option>
-              {examesIniciais.map((ex) => (
-                <option key={ex.id} value={ex.id}>
-                  {ex.nome}
-                </option>
-              ))}
-            </select>
+              placeholder="Nome do exame"
+            />
           </div>
 
-          {!form.exame_id && (
-            <div>
-              <label className="block text-sm font-medium mb-1">Exame (digitar)</label>
-              <input
-                value={form.exame_texto_livre}
-                onChange={(e) => atualizarCampo("exame_texto_livre", e.target.value)}
-                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
-                placeholder="Nome do exame"
-              />
-            </div>
-          )}
+          <div>
+            <label className="block text-sm font-medium mb-1">Recepcionista</label>
+            <input
+              value={form.recepcionista_nome}
+              onChange={(e) => atualizarCampo("recepcionista_nome", e.target.value)}
+              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+              placeholder="Nome de quem atendeu"
+            />
+          </div>
 
           <div>
             <label className="block text-sm font-medium mb-1">Unidade</label>
@@ -289,6 +282,7 @@ export default function SolicitacoesClient({
                 <th className="py-2 pr-3">Ação</th>
                 <th className="py-2 pr-3">Exame</th>
                 <th className="py-2 pr-3">Unidade</th>
+                <th className="py-2 pr-3">Recepcionista</th>
                 <th className="py-2 pr-3">Solicitante</th>
                 <th className="py-2 pr-3">Status</th>
                 <th className="py-2 pr-3"></th>
@@ -305,6 +299,7 @@ export default function SolicitacoesClient({
                   <td className="py-2 pr-3 capitalize">{s.acao}</td>
                   <td className="py-2 pr-3">{s.exames?.nome ?? s.exame_texto_livre}</td>
                   <td className="py-2 pr-3">{s.unidades?.nome}</td>
+                  <td className="py-2 pr-3">{s.recepcionista_nome ?? "-"}</td>
                   <td className="py-2 pr-3">{s.perfis?.nome}</td>
                   <td className="py-2 pr-3">
                     <span
@@ -331,7 +326,7 @@ export default function SolicitacoesClient({
               ))}
               {listaFiltrada.length === 0 && (
                 <tr>
-                  <td colSpan={9} className="py-6 text-center text-slate-400">
+                  <td colSpan={10} className="py-6 text-center text-slate-400">
                     Nenhuma solicitação encontrada.
                   </td>
                 </tr>

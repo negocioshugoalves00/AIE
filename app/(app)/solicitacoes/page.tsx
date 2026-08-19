@@ -23,7 +23,7 @@ export default async function SolicitacoesPage() {
       unidadesIniciais={unidades ?? []}
       conveniosIniciais={convenios ?? []}
       examesIniciais={exames ?? []}
-      solicitacoesIniciais={solicitacoes ?? []}
+      solicitacoesIniciais={(solicitacoes ?? []) as unknown as Parameters<typeof SolicitacoesClient>[0]["solicitacoesIniciais"]}
     />
   );
 }

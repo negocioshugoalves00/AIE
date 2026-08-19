@@ -7,6 +7,23 @@ const NOMES_ACAO: Record<string, string> = {
   exclusao: "Exclusão",
 };
 
+type LinhaPorUnidade = {
+  unidade: string;
+  acao: string;
+  total: number;
+  finalizadas: number;
+  pendentes: number;
+  tempo_medio_horas: number | null;
+};
+
+type LinhaPorRecepcionista = {
+  recepcionista: string;
+  unidade: string;
+  total: number;
+  finalizadas: number;
+  pendentes: number;
+};
+
 export default async function RelatoriosPage() {
   const perfil = await getPerfilAtual();
 
@@ -18,17 +35,23 @@ export default async function RelatoriosPage() {
 
   const supabase = createClient();
 
-  const [{ data: porUnidade, error: erro1 }, { data: porRecepcionista, error: erro2 }] =
+  const [{ data: porUnidadeData, error: erro1 }, { data: porRecepcionistaData, error: erro2 }] =
     await Promise.all([
       supabase.rpc("relatorio_mensal"),
       supabase.rpc("relatorio_por_recepcionista"),
     ]);
 
-  const totalMes = (porUnidade ?? []).reduce((acc, r) => acc + Number(r.total), 0);
-  const totalPendentes = (porUnidade ?? []).reduce((acc, r) => acc + Number(r.pendentes), 0);
-  const totalExclusoes = (porUnidade ?? [])
-    .filter((r) => r.acao === "exclusao")
-    .reduce((acc, r) => acc + Number(r.total), 0);
+  const porUnidade = (porUnidadeData ?? []) as LinhaPorUnidade[];
+  const porRecepcionista = (porRecepcionistaData ?? []) as LinhaPorRecepcionista[];
+
+  const totalMes = porUnidade.reduce((acc: number, r: LinhaPorUnidade) => acc + Number(r.total), 0);
+  const totalPendentes = porUnidade.reduce(
+    (acc: number, r: LinhaPorUnidade) => acc + Number(r.pendentes),
+    0
+  );
+  const totalExclusoes = porUnidade
+    .filter((r: LinhaPorUnidade) => r.acao === "exclusao")
+    .reduce((acc: number, r: LinhaPorUnidade) => acc + Number(r.total), 0);
 
   return (
     <div className="space-y-8">
@@ -80,7 +103,7 @@ export default async function RelatoriosPage() {
               </tr>
             </thead>
             <tbody>
-              {(porUnidade ?? []).map((r, i) => (
+              {porUnidade.map((r: LinhaPorUnidade, i: number) => (
                 <tr key={i} className="border-b border-slate-100">
                   <td className="py-2 pr-3">{r.unidade}</td>
                   <td className="py-2 pr-3">{NOMES_ACAO[r.acao] ?? r.acao}</td>
@@ -90,7 +113,7 @@ export default async function RelatoriosPage() {
                   <td className="py-2 pr-3">{r.tempo_medio_horas ?? "-"}</td>
                 </tr>
               ))}
-              {(!porUnidade || porUnidade.length === 0) && (
+              {porUnidade.length === 0 && (
                 <tr>
                   <td colSpan={6} className="py-6 text-center text-slate-400">
                     Sem solicitações neste mês.
@@ -121,7 +144,7 @@ export default async function RelatoriosPage() {
               </tr>
             </thead>
             <tbody>
-              {(porRecepcionista ?? []).map((r, i) => (
+              {porRecepcionista.map((r: LinhaPorRecepcionista, i: number) => (
                 <tr key={i} className="border-b border-slate-100">
                   <td className="py-2 pr-3">{r.recepcionista}</td>
                   <td className="py-2 pr-3">{r.unidade}</td>
@@ -130,7 +153,7 @@ export default async function RelatoriosPage() {
                   <td className="py-2 pr-3">{r.pendentes}</td>
                 </tr>
               ))}
-              {(!porRecepcionista || porRecepcionista.length === 0) && (
+              {porRecepcionista.length === 0 && (
                 <tr>
                   <td colSpan={5} className="py-6 text-center text-slate-400">
                     Sem solicitações neste mês.

@@ -2,32 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-
-const NOMES_ACAO: Record<string, string> = {
-  inclusao: "Inclusão",
-  alteracao: "Alteração",
-  exclusao: "Exclusão",
-};
+import {
+  NOMES_ACAO,
+  exportarExcel,
+  exportarPDF,
+  type LinhaPorUnidade,
+  type LinhaPorRecepcionista,
+} from "@/lib/relatorio-export";
 
 type Unidade = { id: string; nome: string };
-
-type LinhaPorUnidade = {
-  unidade: string;
-  acao: string;
-  total: number;
-  finalizadas: number;
-  pendentes: number;
-  tempo_medio_minutos: number | null;
-};
-
-type LinhaPorRecepcionista = {
-  recepcionista: string;
-  unidade: string;
-  acao: string;
-  total: number;
-  finalizadas: number;
-  pendentes: number;
-};
 
 function mesAtualComoInput(): string {
   const agora = new Date();
@@ -94,26 +77,58 @@ export default function RelatoriosClient({ unidades }: { unidades: Unidade[] }) 
     .filter((r: LinhaPorUnidade) => r.acao === "exclusao")
     .reduce((acc: number, r: LinhaPorUnidade) => acc + Number(r.total), 0);
 
+  const nomeUnidadeFiltro = unidadeFiltro
+    ? unidades.find((u) => u.id === unidadeFiltro)?.nome ?? null
+    : null;
+
+  const semDados = !carregando && porUnidade.length === 0 && porRecepcionista.length === 0;
+
   return (
     <div className="space-y-8">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-lg font-semibold">
-            Relatório de {nomeDoMes(mes)}
-          </h1>
+          <h1 className="text-lg font-semibold">Relatório de {nomeDoMes(mes)}</h1>
           <p className="text-sm text-slate-500">
             Indicadores para acompanhamento e definição de treinamentos por unidade.
           </p>
         </div>
 
-        <div>
-          <label className="block text-xs font-medium text-slate-500 mb-1">Mês</label>
-          <input
-            type="month"
-            value={mes}
-            onChange={(e) => setMes(e.target.value)}
-            className="rounded-md border border-slate-300 px-3 py-2 text-sm"
-          />
+        <div className="flex flex-wrap items-end gap-3">
+          <div>
+            <label className="block text-xs font-medium text-slate-500 mb-1">Mês</label>
+            <input
+              type="month"
+              value={mes}
+              onChange={(e) => setMes(e.target.value)}
+              className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+            />
+          </div>
+
+          <button
+            disabled={semDados}
+            onClick={() =>
+              exportarExcel(porUnidade, porRecepcionista, mes, nomeUnidadeFiltro)
+            }
+            className="bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 text-sm font-medium rounded-md px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Baixar Excel
+          </button>
+
+          <button
+            disabled={semDados}
+            onClick={() =>
+              exportarPDF(
+                porUnidade,
+                porRecepcionista,
+                mes,
+                nomeDoMes(mes),
+                nomeUnidadeFiltro
+              )
+            }
+            className="bg-primary hover:bg-primary-dark text-white text-sm font-medium rounded-md px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Baixar PDF
+          </button>
         </div>
       </div>
 

@@ -15,6 +15,7 @@ type Solicitacao = {
   data_solicitacao: string;
   exame_texto_livre: string | null;
   recepcionista_nome: string | null;
+  observacao: string | null;
   exames: { nome: string } | null;
   unidades: { nome: string } | null;
   convenios: { nome: string } | null;
@@ -284,6 +285,7 @@ export default function SolicitacoesClient({
                 <th className="py-2 pr-3">Unidade</th>
                 <th className="py-2 pr-3">Recepcionista</th>
                 <th className="py-2 pr-3">Solicitante</th>
+                <th className="py-2 pr-3">Observação</th>
                 <th className="py-2 pr-3">Status</th>
                 <th className="py-2 pr-3"></th>
               </tr>
@@ -301,6 +303,9 @@ export default function SolicitacoesClient({
                   <td className="py-2 pr-3">{s.unidades?.nome}</td>
                   <td className="py-2 pr-3">{s.recepcionista_nome ?? "-"}</td>
                   <td className="py-2 pr-3">{s.perfis?.nome}</td>
+                  <td className="py-2 pr-3 max-w-xs truncate" title={s.observacao ?? ""}>
+                    {s.observacao ?? "-"}
+                  </td>
                   <td className="py-2 pr-3">
                     <span
                       className={`px-2 py-0.5 rounded-full text-xs ${
@@ -326,7 +331,7 @@ export default function SolicitacoesClient({
               ))}
               {listaFiltrada.length === 0 && (
                 <tr>
-                  <td colSpan={10} className="py-6 text-center text-slate-400">
+                  <td colSpan={11} className="py-6 text-center text-slate-400">
                     Nenhuma solicitação encontrada.
                   </td>
                 </tr>

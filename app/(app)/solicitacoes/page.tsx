@@ -1,8 +1,10 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getPerfilAtual } from "@/lib/supabase/server";
 import SolicitacoesClient from "./solicitacoes-client";
 
 export default async function SolicitacoesPage() {
   const supabase = createClient();
+  const perfil = await getPerfilAtual();
+  const podeAlterarStatus = perfil?.role === "operador" || perfil?.role === "gestor";
 
   const [{ data: unidades }, { data: convenios }, { data: solicitacoes }] = await Promise.all([
     supabase.from("unidades").select("id, nome").eq("ativo", true).order("nome"),
@@ -21,6 +23,7 @@ export default async function SolicitacoesPage() {
       unidadesIniciais={unidades ?? []}
       conveniosIniciais={convenios ?? []}
       solicitacoesIniciais={(solicitacoes ?? []) as unknown as Parameters<typeof SolicitacoesClient>[0]["solicitacoesIniciais"]}
+      podeAlterarStatus={podeAlterarStatus}
     />
   );
 }

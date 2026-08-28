@@ -14,7 +14,7 @@ import { createClient } from "@/lib/supabase/client";
 
 type Perfil = {
   nome: string;
-  role: "recepcionista" | "gestor";
+  role: "recepcionista" | "operador" | "gestor";
 };
 
 const ITEM_CLASSES = (ativo: boolean) =>

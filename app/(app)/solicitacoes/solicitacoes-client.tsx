@@ -32,10 +32,12 @@ export default function SolicitacoesClient({
   unidadesIniciais,
   conveniosIniciais,
   solicitacoesIniciais,
+  podeAlterarStatus,
 }: {
   unidadesIniciais: Opcao[];
   conveniosIniciais: Opcao[];
   solicitacoesIniciais: Solicitacao[];
+  podeAlterarStatus: boolean;
 }) {
   const router = useRouter();
   const supabase = createClient();
@@ -87,23 +89,36 @@ export default function SolicitacoesClient({
       return;
     }
 
-    const { error } = await supabase.from("solicitacoes").insert({
-      numero_requisicao: form.numero_requisicao,
-      nome_paciente: form.nome_paciente,
-      convenio_id: form.convenio_id || null,
-      acao: form.acao,
-      exame_texto_livre: form.exame_texto_livre,
-      recepcionista_nome: form.recepcionista_nome,
-      unidade_id: form.unidade_id,
-      observacao: form.observacao || null,
-      solicitante_id: user.id,
-    });
+    const { data: novaSolicitacao, error } = await supabase
+      .from("solicitacoes")
+      .insert({
+        numero_requisicao: form.numero_requisicao,
+        nome_paciente: form.nome_paciente,
+        convenio_id: form.convenio_id || null,
+        acao: form.acao,
+        exame_texto_livre: form.exame_texto_livre,
+        recepcionista_nome: form.recepcionista_nome,
+        unidade_id: form.unidade_id,
+        observacao: form.observacao || null,
+        solicitante_id: user.id,
+      })
+      .select(
+        "id, numero_requisicao, nome_paciente, acao, status, data_solicitacao, exame_texto_livre, recepcionista_nome, observacao, exames(nome), unidades(nome), convenios(nome), perfis!solicitacoes_solicitante_id_fkey(nome)"
+      )
+      .single();
 
     setEnviando(false);
 
     if (error) {
       setErro("Não foi possível salvar: " + error.message);
       return;
+    }
+
+    if (novaSolicitacao) {
+      setSolicitacoes((atual) => [
+        novaSolicitacao as unknown as Solicitacao,
+        ...atual,
+      ]);
     }
 
     setForm({
@@ -130,6 +145,8 @@ export default function SolicitacoesClient({
       setSolicitacoes((atual) =>
         atual.map((s) => (s.id === id ? { ...s, status: "realizada" } : s))
       );
+    } else {
+      setErro("Não foi possível atualizar o status: " + error.message);
     }
   }
 
@@ -318,7 +335,7 @@ export default function SolicitacoesClient({
                     </span>
                   </td>
                   <td className="py-2 pr-3">
-                    {s.status === "pendente" && (
+                    {s.status === "pendente" && podeAlterarStatus && (
                       <button
                         onClick={() => marcarComoRealizada(s.id)}
                         className="text-primary hover:underline text-xs"

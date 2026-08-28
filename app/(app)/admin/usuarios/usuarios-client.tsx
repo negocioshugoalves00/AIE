@@ -10,7 +10,7 @@ type Usuario = {
   id: string;
   nome: string;
   telefone: string | null;
-  role: "recepcionista" | "gestor";
+  role: "recepcionista" | "operador" | "gestor";
   unidade_id: string | null;
   ativo: boolean;
   created_at: string;
@@ -57,8 +57,8 @@ export default function UsuariosClient({
         <h1 className="text-lg font-semibold">Usuários</h1>
         <p className="text-sm text-slate-500">
           Veja todos os cadastros e ajuste papel, unidade e status de acesso. Novos cadastros
-          entram automaticamente como "recepcionista" — promova para "gestor" quem deve ver os
-          relatórios.
+          entram automaticamente como "recepcionista" — promova para "operador" quem pode marcar
+          solicitações como realizadas, e para "gestor" quem deve ver os relatórios.
         </p>
       </div>
 
@@ -108,6 +108,7 @@ export default function UsuariosClient({
                       className="rounded-md border border-slate-300 px-2 py-1 text-xs disabled:opacity-50"
                     >
                       <option value="recepcionista">Recepcionista</option>
+                      <option value="operador">Operador</option>
                       <option value="gestor">Gestor</option>
                     </select>
                   </td>
